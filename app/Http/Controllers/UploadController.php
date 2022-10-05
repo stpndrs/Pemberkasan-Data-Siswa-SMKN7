@@ -58,6 +58,50 @@ class UploadController extends Controller
             'fileIjazah' => $request->file('fileIjazah')->getClientOriginalName()
         ]);
 
-        return redirect()->to('/')->with('status', 'Berhasil menambah data baru!');
+        // return redirect()->to('/')->with('status', 'Berhasil menambah data baru!');
+
+        // return Response()->json([
+        //     "success" => true,
+        //     "berkas" => $cariBerkas
+        // ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $cariBerkas = BerkasModel::join('tb_user', 'tbberkas_berkas.user_id', 'tb_user.id_user')
+        ->where('id', $id)->first();
+
+        if ($request->file('fileKK') == null) {
+            $fileKK = $cariBerkas->fileKK;
+        } else {
+            $fileKK = $request->file('fileKK')->getClientOriginalName();
+        }
+        if ($request->file('fileAkta') == null) {
+            $fileAkta = $cariBerkas->fileAkta;
+        } else {
+            $fileAkta = $request->file('fileAkta')->getClientOriginalName();
+        }
+        if ($request->file('fileIjazah') == null) {
+            $fileIjazah = $cariBerkas->fileIjazah;
+        } else {
+            $fileIjazah = $request->file('fileIjazah')->getClientOriginalName();
+        }
+        BerkasModel::where('id', $id)
+        ->update([
+            'fileKK' => $fileKK,
+            'fileAkta' => $fileAkta,
+            'fileIjazah' => $fileIjazah
+        ]);
+        // ;
+    }
+
+    public function cekBerkas($nisn)
+    {
+        $cariBerkas = BerkasModel::join('tb_user', 'tbberkas_berkas.user_id', 'tb_user.id_user')
+        ->where('user_id', $nisn)->first();
+
+        // if ($cariBerkas) {
+            return response()->json($cariBerkas);
+        // }
     }
 }

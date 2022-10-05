@@ -20,3 +20,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [UploadController::class, 'upload']);
 Route::post('save', [UploadController::class, 'save']);
+Route::post('update/{id}', [UploadController::class, 'update']);
+Route::get('cek-berkas/{nisn}', [UploadController::class, 'cekBerkas']);

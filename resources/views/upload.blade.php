@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <!-- Required meta tags -->
+    <!-- meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -24,11 +24,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-        <form action="{{ url('save') }}" method="post" enctype="multipart/form-data">
+        <form action="" id="formBerkas" method="post" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
                 <select class="js-example-basic-single form-control @error('user_id') is-invalid @enderror"
-                    aria-label="Default select example" name="user_id">
+                    aria-label="Default select example" name="user_id" id="user_id" required>
                     <option value="" selected>Nama Siswa</option>
                     @foreach ($siswa as $item)
                         <option value="{{ $item->id_user }}">{{ $item->nama }}</option>
@@ -50,6 +50,7 @@
                     </div>
                 @enderror
             </div>
+            <input type="hidden" name="kkOld" id="kkOld">
             <div class="mb-3">
                 <label for="formFile" class="form-label">Akta Lahir</label>
                 <input class="form-control @error('fileAkta') is-invalid @enderror" type="file" id="formFile"
@@ -60,6 +61,7 @@
                     </div>
                 @enderror
             </div>
+            <input type="hidden" name="aktaOld" id="aktaOld">
             <div class="mb-3">
                 <label for="formFile" class="form-label">Ijazah</label>
                 <input class="form-control @error('fileIjazah') is-invalid @enderror" type="file" id="formFile"
@@ -70,7 +72,8 @@
                     </div>
                 @enderror
             </div>
-            <button class="btn btn-primary" type="submit">Simpan</button>
+            <input type="hidden" name="ijazahOld" id="ijazahOld">
+            <button class="btn btn-primary" type="submit" id="simpan">Simpan</button>
         </form>
     </div>
 
@@ -101,6 +104,67 @@
         $(document).ready(function() {
             $('.js-example-basic-single').select2();
         });
+    </script>
+
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $('#formBerkas').submit(function(e) {
+            e.preventDefault();
+            var user_id = $('select[name=user_id] option').filter(':selected').val()
+            var formData = new FormData(this);
+            var btn = $('#simpan')
+            $.ajax({
+                url: "{{ url('cek-berkas') }}/" + user_id,
+                success: function(response) {
+                    // alert($.isEmptyObject(response));
+                    if ($.isEmptyObject(response) == true) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('/save') }}",
+                            data: formData,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            success: (data) => {
+                                $("#formBerkas")[0].reset();
+                                $('#user_id').val(null).trigger('change');
+                                alert('Data berhasil diupload');
+                            },
+                            // error: function(data) {
+                            //     console.log(data);
+                            // }
+                        })
+                    } else {
+                        if (confirm("Data atas nama " + response.nama + " dengan NISN " + response
+                                .username + " sudah ada, yakin ingin menimpa dengan data baru?") ==
+                            true) {
+                            const id = response.user_id;
+                            $.ajax({
+                                type: "POST",
+                                url: "{{ url('update') }}/" + response.id,
+                                data: formData,
+                                cache: false,
+                                contentType: false,
+                                processData: false,
+                                success: (data) => {
+                                    $("#formBerkas")[0].reset();
+                                    $('#user_id').val(null).trigger('change');
+                                    alert('Data berhasil diupdate');
+                                    // alert(data);
+                                },
+                                // error: function(data) {
+                                //     // console.log(data);
+                                // }
+                            })
+                        }
+                    }
+                }
+            })
+        })
     </script>
 </body>
 
